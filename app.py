@@ -93,16 +93,22 @@ def logout():
 @app.route('/report-lost', methods=['POST'])
 @login_required
 def report_lost():
-    data = request.json
+    name = request.form['name']
+    description = request.form['description']
+    location = request.form['location']
+    date_lost = request.form['date_lost']
+
     new_item = LostItem(
-        name=data['name'],
-        description=data['description'],
-        location=data['location'],
-        date_lost=data['date_lost']
+        name=name,
+        description=description,
+        location=location,
+        date_lost=date_lost
     )
     db.session.add(new_item)
     db.session.commit()
-    return jsonify({"message": "Lost item reported successfully!"})
+    flash('Lost item reported successfully!', 'success')
+    return redirect(url_for('home'))  # Redirect to the home page after successful report
+
 
 # Get Lost Items (Only Unclaimed)
 @app.route('/lost-items', methods=['GET'])
