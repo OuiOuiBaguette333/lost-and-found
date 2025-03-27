@@ -34,6 +34,11 @@ class LostItem(db.Model):
     date_lost = db.Column(db.String(50), nullable=False)
     claim_person = db.Column(db.String(100), nullable=True)
 
+# Load user forLogin
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 # Forms
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=150)])
@@ -44,10 +49,6 @@ class RegisterForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=150)])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Register')
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
 
 @app.route('/')
 def home():
