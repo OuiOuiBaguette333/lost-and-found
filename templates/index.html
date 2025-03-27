@@ -27,7 +27,7 @@
                 <h3>Report a Lost Item</h3>
             </div>
             <div class="card-body">
-                <form onsubmit="submitLostItem(event)">
+                <form id="lost-item-form">
                     <div class="mb-3">
                         <label for="name" class="form-label">Item Name</label>
                         <input type="text" class="form-control" id="name" name="name" required>
@@ -66,7 +66,7 @@
                 <h3>Claim an Item</h3>
             </div>
             <div class="card-body">
-                <form onsubmit="claimItem(event)">
+                <form id="claim-item-form">
                     <div class="mb-3">
                         <label for="item_id" class="form-label">Item ID</label>
                         <input type="number" class="form-control" id="item_id" name="item_id" required>
@@ -91,6 +91,17 @@
 
     <!-- Scripts for functionality -->
     <script>
+        // Prevent form submission default action
+        document.getElementById('lost-item-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            submitLostItem(event);
+        });
+
+        document.getElementById('claim-item-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            claimItem(event);
+        });
+
         // Fetch all unclaimed lost items
         function fetchLostItems() {
             fetch('/lost-items')
@@ -147,7 +158,6 @@
 
         // Submit the lost item data
         function submitLostItem(event) {
-            event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);
             const data = {
@@ -174,7 +184,6 @@
 
         // Claim an item
         function claimItem(event) {
-            event.preventDefault();
             const form = event.target;
             const formData = new FormData(form);
             const data = {
