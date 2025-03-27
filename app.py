@@ -25,11 +25,13 @@ def home():
 # Report Lost Item (No login required)
 @app.route('/report-lost', methods=['POST'])
 def report_lost():
-    # Get data from the form
-    name = request.form['name']
-    description = request.form['description']
-    location = request.form['location']
-    date_lost = request.form['date_lost']
+    # Handle JSON data
+    data = request.get_json()
+    
+    name = data['name']
+    description = data['description']
+    location = data['location']
+    date_lost = data['date_lost']
 
     # Create a new lost item
     new_item = LostItem(
@@ -41,8 +43,7 @@ def report_lost():
     db.session.add(new_item)
     db.session.commit()
 
-    flash('Lost item reported successfully!', 'success')
-    return redirect(url_for('home'))
+    return jsonify({"message": "Lost item reported successfully!"}), 200
 
 # Get Lost Items (Only Unclaimed)
 @app.route('/lost-items', methods=['GET'])
