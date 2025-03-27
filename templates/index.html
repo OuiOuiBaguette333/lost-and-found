@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lost & Found</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+    <style>
+        body {
+            padding-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-5">Lost & Found</h1>
+
+        <!-- Report Lost Item Form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Report a Lost Item</h3>
+            </div>
+            <div class="card-body">
+                <form onsubmit="submitLostItem(event)">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Item Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location Last Seen</label>
+                        <input type="text" class="form-control" id="location" name="location" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="date_lost" class="form-label">Date Lost</label>
+                        <input type="date" class="form-control" id="date_lost" name="date_lost" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Report Lost Item</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lost Items Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Lost Items</h3>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-secondary mb-3" onclick="fetchLostItems()">Show Lost Items</button>
+                <div id="items"></div>
+            </div>
+        </div>
+
+        <!-- Claim Item Form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Claim an Item</h3>
+            </div>
+            <div class="card-body">
+                <form onsubmit="claimItem(event)">
+                    <div class="mb-3">
+                        <label for="item_id" class="form-label">Item ID</label>
+                        <input type="number" class="form-control" id="item_id" name="item_id" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="claim_name" class="form-label">Your Name</label>
+                        <input type="text" class="form-control" id="claim_name" name="claim_name" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Claim Item</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Claimed Items Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Claimed Items</h3>
+            </div>
+            <div class="card-body" id="claimed"></div>
+        </div>
+    </div>
+
+    <!-- Scripts for functionality -->
+    <script>
+        // Fetch all unclaimed lost items
+        function fetchLostItems() {
+            fetch('/lost-items')
+                .then(response => response.json())
+                .then(data => {
+                    let itemsDiv = document.getElementById('items');
+                    itemsDiv.innerHTML = "";
+                    if (data.length === 0) {
+                        itemsDiv.innerHTML = "<p>No lost items found.</p>";
+                    } else {
+                        data.forEach(item => {
+                            itemsDiv.innerHTML += `
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Item ID: ${item.id}</h5>
+                                        <h5 class="card-title">${item.name}</h5>
+                                        <p class="card-text">${item.description}</p>
+                                        <p><strong>Last seen at:</strong> ${item.location}</p>
+                                        <p><strong>Lost on:</strong> ${item.date_lost}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching lost items:', error));
+        }
+
+        // Fetch all claimed items and their claimants
+        function fetchClaimedItems() {
+            fetch('/claimed-items')
+                .then(response => response.json())
+                .then(data => {
+                    let claimedDiv = document.getElementById('claimed');
+                    claimedDiv.innerHTML = "";
+                    if (data.length === 0) {
+                        claimedDiv.innerHTML = "<p>No claimed items found.</p>";
+                    } else {
+                        data.forEach(item => {
+                            claimedDiv.innerHTML += `
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Item ID: ${item.id}</h5>
+                                        <h5 class="card-title">${item.name}</h5>
+                                        <p><strong>Claimed by:</strong> ${item.claim_person}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching claimed items:', error));
+        }
+
+        // Submit the lost item data
+        function submitLostItem(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = {
+                name: formData.get('name'),
+                description: formData.get('description'),
+                location: formData.get('location'),
+                date_lost: formData.get('date_lost')
+            };
+
+            fetch('/report-lost', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);  // Show success message
+                form.reset();  // Reset the form
+            })
+            .catch(error => console.error('Error submitting lost item:', error));
+        }
+
+        // Claim an item
+        function claimItem(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = {
+                item_id: formData.get('item_id'),
+                claim_name: formData.get('claim_name')
+            };
+
+            fetch('/claim-item', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                form.reset();
+                fetchLostItems();  // Refresh the list of lost items
+                fetchClaimedItems();  // Refresh the list of claimed items
+            })
+            .catch(error => console.error('Error claiming item:', error))
+        }
+
+        // Fetch initial data on page load
+        document.addEventListener("DOMContentLoaded", function() {
+            fetchLostItems();
+            fetchClaimedItems();
+        });
+    </script>
+</body>
+</html>
